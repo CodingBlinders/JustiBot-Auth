@@ -1,95 +1,24 @@
-const User = require('../Models/UserModels')
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
-async function viewUser(req, res) {
+
+module.exports.register = async (req, res, next) => {
+    console.log(req);
     try {
-     const userId = req.user._id;
-     const currentUser = await User.findOne({_id: userId})
-     
-     res.status(200).json({ message: 'User Found' , succes: true, currentUser})
-     }
-
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+      const { email, password, name, createdAt } = req.body;
+      // Set the default role to "user"
+      const role = "user";
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+      const user = await User.create({ email, password, name, createdAt, role });
     
-} 
-
-async function deleteUser(req, res){
-    try {
-        const userId = req.user._id;
-        const currentUser = await User.findOne({_id: userId});
-    
-        if (req.user._id.toString() !== currentUser._id.toString()) {
-            return res.status(401).json({message: 'Unauthorized'});
-        }
-
-        const deletedUser = await User.findOneAndDelete({_id: userId});
-
-        res.status(200).json({ message: 'User Deleted' , succes: true});
-        }
-   
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-       }
-}
-
-async function updateUser(req, res){
-    try {
-        const userId = req.user._id;
-
-        const { name, password } = req.body
-
-        const updatedUser = await User.findByIdAndUpdate(
-            userId, 
-            { name, password }
-        )
-
-        res.status(200).json({ message: 'User Updated' , succes: true});
-        }
-   
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-       }
-}
-
-async function allUsers(req, res){
-    try {
-  
-      const users = await User.find();
-      res.status(200).json({message: "All blogs", success: true ,users});
-  
+      res
+        .status(201)
+        .json({ message: "User signed up successfully", success: true, user });
+      next();
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Failed to delete the blog' });
     }
-}
-
-
-async function deleteUserAdmin(req, res){
-    try {
-        const { userId } = req.params;
-        const currentUser = await User.findOne({_id: userId});
-    
-        if (req.user.role !== "admin") {
-            return res.status(401).json({message: 'Unauthorized'});
-        }
-
-        const deletedUser = await User.findOneAndDelete({_id: userId});
-
-        res.status(200).json({ message: 'User Deleted' , succes: true});
-        }
-   
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-       }
-}
-
-
-module.exports = {
-    deleteUser, viewUser, updateUser, allUsers, deleteUserAdmin
-};
- 
+  };
