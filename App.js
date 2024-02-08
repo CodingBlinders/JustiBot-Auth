@@ -1,4 +1,4 @@
-// require('dotenv').config(); // Load environment variables
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const passport = require('passport');
 const mongoose = require('mongoose');
@@ -16,32 +16,29 @@ var crypto = require('crypto');
 const session = require('express-session');
 
 const app = express();
-
-app.use(session({ secret: 'yourSecretHere', resave: false, saveUninitialized: false }));
+secreatKey = crypto.randomBytes(64).toString('hex');
+app.use(session({ secret: secreatKey, resave: false, saveUninitialized: false }));
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-// app.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: true,
-//     saveUninitialized: true
-// }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
+MONGO_URL= process.env.MONGO_URL
+mongoose.connect(MONGO_URL);
 
-mongoose.connect('mongodb+srv://codingblinders:FltF1P1yN4nyT7hA@cluster0.qefekzj.mongodb.net/?retryWrites=true&w=majority');
-
-GOOGLE_CLIENT_ID="548418750041-g0cfhukslus0i0p99ooifc14va3a7ttd.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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"
+GOOGLE_CLIENT_ID=process.env.GOOGLE_CLIENT_ID;
+GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET;
+callbackURL=process.env.CALLBACK_URL;
 
 // Passport Google OAuth strategy
 
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3001/auth/google/callback'
+    callbackURL: callbackURL
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         // Check if the user already exists in the database
